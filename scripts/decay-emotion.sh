@@ -2,6 +2,7 @@
 # decay-emotion.sh — Return emotional state toward baseline over time
 # Usage: ./decay-emotion.sh [--dry-run]
 # Run via cron (e.g., every 6 hours) to gradually normalize emotions
+# Now supports per-dimension decay rates!
 
 set -e
 
@@ -16,9 +17,8 @@ fi
 DRY_RUN=false
 [ "$1" = "--dry-run" ] && DRY_RUN=true
 
-# Decay rate: how much to move toward baseline each run
-# 0.1 means 10% of the distance to baseline
-DECAY_RATE=0.1
+# Default decay rate if not specified per-dimension
+DEFAULT_DECAY_RATE=0.1
 
 NOW=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
@@ -26,27 +26,28 @@ echo "🎭 Emotional Decay"
 echo "─────────────────────"
 echo ""
 
-# Get current and baseline values
-for DIM in valence arousal connection curiosity energy; do
+# Get all dimensions
+DIMENSIONS=$(jq -r '.dimensions | keys[]' "$STATE_FILE")
+
+for DIM in $DIMENSIONS; do
   CURRENT=$(jq -r ".dimensions.$DIM" "$STATE_FILE")
-  BASELINE=$(jq -r ".baseline.$DIM" "$STATE_FILE")
+  BASELINE=$(jq -r ".baseline.$DIM // $CURRENT" "$STATE_FILE")
+  
+  # Get per-dimension decay rate if available
+  DECAY_RATE=$(jq -r ".decayRates.$DIM // $DEFAULT_DECAY_RATE" "$STATE_FILE")
   
   # Calculate decay: move DECAY_RATE toward baseline
-  # new = current + (baseline - current) * rate
-  DIFF=$(echo "$BASELINE - $CURRENT" | bc -l)
-  CHANGE=$(echo "$DIFF * $DECAY_RATE" | bc -l)
-  NEW=$(echo "$CURRENT + $CHANGE" | bc -l)
-  
-  # Round to 2 decimal places
-  NEW=$(printf "%.2f" $NEW)
+  DIFF=$(awk -v b="$BASELINE" -v c="$CURRENT" 'BEGIN {print b - c}')
+  CHANGE=$(awk -v d="$DIFF" -v r="$DECAY_RATE" 'BEGIN {printf "%.3f", d * r}')
+  NEW=$(awk -v c="$CURRENT" -v ch="$CHANGE" 'BEGIN {printf "%.2f", c + ch}')
   
   if [ "$DRY_RUN" = true ]; then
-    echo "$DIM: $CURRENT → $NEW (baseline: $BASELINE)"
+    echo "$DIM: $CURRENT → $NEW (baseline: $BASELINE, rate: $DECAY_RATE)"
   else
     # Update the state file
     jq ".dimensions.$DIM = $NEW" "$STATE_FILE" > "$STATE_FILE.tmp"
     mv "$STATE_FILE.tmp" "$STATE_FILE"
-    echo "$DIM: $CURRENT → $NEW"
+    echo "$DIM: $CURRENT → $NEW (rate: $DECAY_RATE)"
   fi
 done
 

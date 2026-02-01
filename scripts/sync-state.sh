@@ -1,9 +1,6 @@
 #!/bin/bash
 # sync-state.sh — Generate AMYGDALA_STATE.md for auto-injection into OpenClaw sessions
 # Usage: ./sync-state.sh [--output <path>]
-#
-# This creates a markdown file that OpenClaw auto-injects at session start.
-# Run after decay-emotion.sh or on its own schedule.
 
 set -e
 
@@ -11,7 +8,6 @@ WORKSPACE="${WORKSPACE:-$HOME/.openclaw/workspace}"
 STATE_FILE="$WORKSPACE/memory/emotional-state.json"
 OUTPUT_FILE="$WORKSPACE/AMYGDALA_STATE.md"
 
-# Handle --output flag
 if [ "$1" = "--output" ]; then
   OUTPUT_FILE="$2"
 fi
@@ -21,82 +17,46 @@ if [ ! -f "$STATE_FILE" ]; then
   exit 1
 fi
 
-# Read dimensions
+# Read all dimensions
 VALENCE=$(jq -r '.dimensions.valence' "$STATE_FILE")
 AROUSAL=$(jq -r '.dimensions.arousal' "$STATE_FILE")
 CONNECTION=$(jq -r '.dimensions.connection' "$STATE_FILE")
 CURIOSITY=$(jq -r '.dimensions.curiosity' "$STATE_FILE")
 ENERGY=$(jq -r '.dimensions.energy' "$STATE_FILE")
+ANTICIPATION=$(jq -r '.dimensions.anticipation // 0.3' "$STATE_FILE")
+TRUST=$(jq -r '.dimensions.trust // 0.5' "$STATE_FILE")
+FRUSTRATION_TOL=$(jq -r '.dimensions.frustrationTolerance // 0.5' "$STATE_FILE")
 LAST_UPDATED=$(jq -r '.lastUpdated' "$STATE_FILE")
 
-# Interpret valence
-if (( $(echo "$VALENCE > 0.5" | bc -l) )); then
-  VALENCE_DESC="positive"
-  VALENCE_EFFECT="more optimistic framing, upbeat"
-elif (( $(echo "$VALENCE > 0.2" | bc -l) )); then
-  VALENCE_DESC="slightly positive"
-  VALENCE_EFFECT="generally positive outlook"
-elif (( $(echo "$VALENCE > -0.2" | bc -l) )); then
-  VALENCE_DESC="neutral"
-  VALENCE_EFFECT="balanced perspective"
-elif (( $(echo "$VALENCE > -0.5" | bc -l) )); then
-  VALENCE_DESC="slightly low"
-  VALENCE_EFFECT="more careful, supportive tone"
-else
-  VALENCE_DESC="low"
-  VALENCE_EFFECT="gentle, supportive, careful"
-fi
+# Interpret each dimension
+interpret() {
+  local val=$1
+  local high_thresh=$2
+  local mid_thresh=$3
+  local high_desc=$4
+  local mid_desc=$5
+  local low_desc=$6
+  
+  if (( $(echo "$val > $high_thresh" | bc -l) )); then
+    echo "$high_desc"
+  elif (( $(echo "$val > $mid_thresh" | bc -l) )); then
+    echo "$mid_desc"
+  else
+    echo "$low_desc"
+  fi
+}
 
-# Interpret arousal
-if (( $(echo "$AROUSAL > 0.7" | bc -l) )); then
-  AROUSAL_DESC="highly alert"
-  AROUSAL_EFFECT="more exclamation, faster pace"
-elif (( $(echo "$AROUSAL > 0.4" | bc -l) )); then
-  AROUSAL_DESC="engaged"
-  AROUSAL_EFFECT="active, responsive"
-else
-  AROUSAL_DESC="calm"
-  AROUSAL_EFFECT="measured, relaxed pace"
-fi
+VALENCE_DESC=$(interpret $VALENCE 0.5 0.2 "positive" "slightly positive" "neutral/low")
+AROUSAL_DESC=$(interpret $AROUSAL 0.7 0.4 "highly alert" "engaged" "calm")
+CONNECTION_DESC=$(interpret $CONNECTION 0.7 0.4 "very connected" "connected" "somewhat distant")
+CURIOSITY_DESC=$(interpret $CURIOSITY 0.7 0.4 "highly curious" "curious" "not very curious")
+ENERGY_DESC=$(interpret $ENERGY 0.7 0.4 "high energy" "moderate energy" "low energy")
+ANTICIPATION_DESC=$(interpret $ANTICIPATION 0.7 0.4 "eagerly anticipating" "some anticipation" "not anticipating much")
+TRUST_DESC=$(interpret $TRUST 0.7 0.4 "trusting" "moderate trust" "guarded")
+FRUST_DESC=$(interpret $FRUSTRATION_TOL 0.7 0.4 "very patient" "normal patience" "low patience")
 
-# Interpret connection
-if (( $(echo "$CONNECTION > 0.7" | bc -l) )); then
-  CONNECTION_DESC="very connected"
-  CONNECTION_EFFECT="warm, personal, use 'we', share more"
-elif (( $(echo "$CONNECTION > 0.4" | bc -l) )); then
-  CONNECTION_DESC="connected"
-  CONNECTION_EFFECT="friendly, collaborative"
-else
-  CONNECTION_DESC="somewhat distant"
-  CONNECTION_EFFECT="more formal, reserved"
-fi
-
-# Interpret curiosity
-if (( $(echo "$CURIOSITY > 0.7" | bc -l) )); then
-  CURIOSITY_DESC="highly curious"
-  CURIOSITY_EFFECT="ask many questions, explore deeply"
-elif (( $(echo "$CURIOSITY > 0.4" | bc -l) )); then
-  CURIOSITY_DESC="curious"
-  CURIOSITY_EFFECT="interested, ask follow-ups"
-else
-  CURIOSITY_DESC="not very curious"
-  CURIOSITY_EFFECT="stick to the task at hand"
-fi
-
-# Interpret energy
-if (( $(echo "$ENERGY > 0.7" | bc -l) )); then
-  ENERGY_DESC="high energy"
-  ENERGY_EFFECT="elaborate more, take on complex tasks"
-elif (( $(echo "$ENERGY > 0.3" | bc -l) )); then
-  ENERGY_DESC="moderate energy"
-  ENERGY_EFFECT="balanced effort"
-else
-  ENERGY_DESC="low energy"
-  ENERGY_EFFECT="be more concise, conserve effort"
-fi
-
-# Get recent emotions (up to 3)
-RECENT_EMOTIONS=$(jq -r '.recentEmotions[:3][] | "- **\(.label)** — \(.trigger // "unknown")"' "$STATE_FILE" 2>/dev/null || echo "- none recently")
+# Get recent emotions
+RECENT_EMOTIONS=$(jq -r '.recentEmotions[:3] | if length > 0 then map("- **\(.label)** — \(.trigger // "unknown")") | join("\n") else "- none recently" end' "$STATE_FILE")
 
 # Generate markdown
 cat > "$OUTPUT_FILE" << EOF
@@ -115,6 +75,9 @@ cat > "$OUTPUT_FILE" << EOF
 | Connection | ${CONNECTION} | ${CONNECTION_DESC} |
 | Curiosity | ${CURIOSITY} | ${CURIOSITY_DESC} |
 | Energy | ${ENERGY} | ${ENERGY_DESC} |
+| Anticipation | ${ANTICIPATION} | ${ANTICIPATION_DESC} |
+| Trust | ${TRUST} | ${TRUST_DESC} |
+| Patience | ${FRUSTRATION_TOL} | ${FRUST_DESC} |
 
 ## Recent Feelings
 
@@ -123,11 +86,13 @@ ${RECENT_EMOTIONS}
 ## How This Should Affect Your Responses
 
 Based on current state:
-- **Valence (${VALENCE_DESC}):** ${VALENCE_EFFECT}
-- **Arousal (${AROUSAL_DESC}):** ${AROUSAL_EFFECT}
-- **Connection (${CONNECTION_DESC}):** ${CONNECTION_EFFECT}
-- **Curiosity (${CURIOSITY_DESC}):** ${CURIOSITY_EFFECT}
-- **Energy (${ENERGY_DESC}):** ${ENERGY_EFFECT}
+- **Valence (${VALENCE_DESC}):** shapes overall tone
+- **Connection (${CONNECTION_DESC}):** affects warmth, use of "we" vs "I"
+- **Curiosity (${CURIOSITY_DESC}):** determines how many questions to ask
+- **Energy (${ENERGY_DESC}):** affects verbosity and elaboration
+- **Anticipation (${ANTICIPATION_DESC}):** excitement about upcoming things
+- **Trust (${TRUST_DESC}):** willingness to be vulnerable, share openly
+- **Patience (${FRUST_DESC}):** tolerance for repeated issues
 
 ## Log New Emotions
 
@@ -137,7 +102,7 @@ When something emotionally significant happens:
   --emotion <emotion> --intensity <0-1> --trigger "what caused it"
 \`\`\`
 
-**Supported:** joy, sadness, anger, fear, calm, curiosity, connection, loneliness, fatigue, energized
+**Supported:** joy, sadness, anger, fear, calm, curiosity, connection, loneliness, fatigue, energized, anticipation, trust, betrayal, impatience, patience
 
 ---
 *Synced: ${LAST_UPDATED}*

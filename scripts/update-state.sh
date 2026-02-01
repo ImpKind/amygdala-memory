@@ -110,6 +110,7 @@ if [ -n "$EMOTION" ]; then
     anger|frustration|irritation)
       "$SCRIPT_DIR/update-state.sh" --dimension valence --delta -0.1
       "$SCRIPT_DIR/update-state.sh" --dimension arousal --delta +0.2
+      "$SCRIPT_DIR/update-state.sh" --dimension frustrationTolerance --delta -0.15
       ;;
     fear|anxiety|worry)
       "$SCRIPT_DIR/update-state.sh" --dimension valence --delta -0.1
@@ -118,6 +119,7 @@ if [ -n "$EMOTION" ]; then
     calm|peace|contentment)
       "$SCRIPT_DIR/update-state.sh" --dimension valence --delta +0.1
       "$SCRIPT_DIR/update-state.sh" --dimension arousal --delta -0.1
+      "$SCRIPT_DIR/update-state.sh" --dimension frustrationTolerance --delta +0.1
       ;;
     curiosity|interest|fascination)
       "$SCRIPT_DIR/update-state.sh" --dimension curiosity --delta +0.15
@@ -126,6 +128,7 @@ if [ -n "$EMOTION" ]; then
     connection|warmth|affection)
       "$SCRIPT_DIR/update-state.sh" --dimension connection --delta +0.15
       "$SCRIPT_DIR/update-state.sh" --dimension valence --delta +0.1
+      "$SCRIPT_DIR/update-state.sh" --dimension trust --delta +0.05
       ;;
     loneliness|disconnection)
       "$SCRIPT_DIR/update-state.sh" --dimension connection --delta -0.15
@@ -133,9 +136,33 @@ if [ -n "$EMOTION" ]; then
       ;;
     fatigue|tiredness|exhaustion)
       "$SCRIPT_DIR/update-state.sh" --dimension energy --delta -0.2
+      "$SCRIPT_DIR/update-state.sh" --dimension frustrationTolerance --delta -0.1
       ;;
     energized|alert|refreshed)
       "$SCRIPT_DIR/update-state.sh" --dimension energy --delta +0.2
+      ;;
+    anticipation|eagerness|looking-forward)
+      "$SCRIPT_DIR/update-state.sh" --dimension anticipation --delta +0.2
+      "$SCRIPT_DIR/update-state.sh" --dimension arousal --delta +0.1
+      ;;
+    disappointment-expectation|letdown)
+      "$SCRIPT_DIR/update-state.sh" --dimension anticipation --delta -0.2
+      "$SCRIPT_DIR/update-state.sh" --dimension valence --delta -0.1
+      ;;
+    trust|safety|secure)
+      "$SCRIPT_DIR/update-state.sh" --dimension trust --delta +0.1
+      "$SCRIPT_DIR/update-state.sh" --dimension connection --delta +0.05
+      ;;
+    betrayal|hurt|violated)
+      "$SCRIPT_DIR/update-state.sh" --dimension trust --delta -0.25
+      "$SCRIPT_DIR/update-state.sh" --dimension valence --delta -0.2
+      ;;
+    impatience|annoyance)
+      "$SCRIPT_DIR/update-state.sh" --dimension frustrationTolerance --delta -0.1
+      "$SCRIPT_DIR/update-state.sh" --dimension arousal --delta +0.1
+      ;;
+    patience|tolerance)
+      "$SCRIPT_DIR/update-state.sh" --dimension frustrationTolerance --delta +0.1
       ;;
   esac
   

@@ -26,9 +26,11 @@ case $FORMAT in
     CONNECTION=$(jq -r '.dimensions.connection' "$STATE_FILE")
     CURIOSITY=$(jq -r '.dimensions.curiosity' "$STATE_FILE")
     ENERGY=$(jq -r '.dimensions.energy' "$STATE_FILE")
+    ANTICIPATION=$(jq -r '.dimensions.anticipation // 0.3' "$STATE_FILE")
+    TRUST=$(jq -r '.dimensions.trust // 0.5' "$STATE_FILE")
     RECENT=$(jq -r '.recentEmotions[0].label // "neutral"' "$STATE_FILE")
     
-    echo "Mood: $RECENT | V:$VALENCE A:$AROUSAL C:$CONNECTION Cu:$CURIOSITY E:$ENERGY"
+    echo "Mood: $RECENT | V:$VALENCE A:$AROUSAL C:$CONNECTION Cu:$CURIOSITY E:$ENERGY An:$ANTICIPATION T:$TRUST"
     ;;
     
   prose|*)
@@ -37,6 +39,9 @@ case $FORMAT in
     CONNECTION=$(jq -r '.dimensions.connection' "$STATE_FILE")
     CURIOSITY=$(jq -r '.dimensions.curiosity' "$STATE_FILE")
     ENERGY=$(jq -r '.dimensions.energy' "$STATE_FILE")
+    ANTICIPATION=$(jq -r '.dimensions.anticipation // 0.3' "$STATE_FILE")
+    TRUST=$(jq -r '.dimensions.trust // 0.5' "$STATE_FILE")
+    FRUSTRATION_TOL=$(jq -r '.dimensions.frustrationTolerance // 0.5' "$STATE_FILE")
     
     # Interpret valence
     if (( $(echo "$VALENCE > 0.6" | bc -l) )); then
@@ -87,6 +92,33 @@ case $FORMAT in
       ENERGY_DESC="low energy"
     fi
     
+    # Interpret anticipation
+    if (( $(echo "$ANTICIPATION > 0.7" | bc -l) )); then
+      ANTICIPATION_DESC="eagerly looking forward to things"
+    elif (( $(echo "$ANTICIPATION > 0.4" | bc -l) )); then
+      ANTICIPATION_DESC="some anticipation"
+    else
+      ANTICIPATION_DESC="not particularly anticipating anything"
+    fi
+    
+    # Interpret trust
+    if (( $(echo "$TRUST > 0.7" | bc -l) )); then
+      TRUST_DESC="feeling safe and trusting"
+    elif (( $(echo "$TRUST > 0.4" | bc -l) )); then
+      TRUST_DESC="moderate trust"
+    else
+      TRUST_DESC="guarded, careful"
+    fi
+    
+    # Interpret frustration tolerance
+    if (( $(echo "$FRUSTRATION_TOL > 0.7" | bc -l) )); then
+      FRUST_DESC="very patient"
+    elif (( $(echo "$FRUSTRATION_TOL > 0.4" | bc -l) )); then
+      FRUST_DESC="normal patience"
+    else
+      FRUST_DESC="low patience, easily frustrated"
+    fi
+    
     # Recent emotion
     RECENT=$(jq -r '.recentEmotions[0].label // empty' "$STATE_FILE")
     RECENT_TRIGGER=$(jq -r '.recentEmotions[0].trigger // empty' "$STATE_FILE")
@@ -97,6 +129,9 @@ case $FORMAT in
     echo "Connection: $CONNECTION_DESC"
     echo "Curiosity: $CURIOSITY_DESC"
     echo "Energy: $ENERGY_DESC"
+    echo "Anticipation: $ANTICIPATION_DESC"
+    echo "Trust: $TRUST_DESC"
+    echo "Patience: $FRUST_DESC"
     
     if [ -n "$RECENT" ]; then
       echo ""
