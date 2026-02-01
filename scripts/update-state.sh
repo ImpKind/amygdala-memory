@@ -1,4 +1,5 @@
 #!/bin/bash
+# Also logs to emotion-log.jsonl for historical analysis
 # update-state.sh — Update emotional state
 # Usage: ./update-state.sh --emotion <label> --intensity <0-1> [--trigger "what caused it"]
 #        ./update-state.sh --dimension <name> --delta <+/-value>
@@ -81,8 +82,8 @@ if [ -n "$EMOTION" ]; then
   INTENSITY=${INTENSITY:-0.5}
   TRIGGER=${TRIGGER:-"unspecified"}
   
-  # Create emotion entry
-  ENTRY=$(jq -n \
+  # Create emotion entry (compact JSON for JSONL)
+  ENTRY=$(jq -c -n \
     --arg label "$EMOTION" \
     --arg intensity "$INTENSITY" \
     --arg trigger "$TRIGGER" \
