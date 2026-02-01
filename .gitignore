@@ -1,0 +1,7 @@
+# State files (private)
+emotional-state.json
+emotional-log.jsonl
+*.tmp
+
+# OS
+.DS_Store
