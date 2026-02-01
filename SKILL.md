@@ -4,7 +4,7 @@ description: "Emotional processing layer for AI agents. Persistent emotional sta
 metadata:
   openclaw:
     emoji: "🎭"
-    version: "1.0.0"
+    version: "1.1.0"
     author: "ImpKind"
     repo: "https://github.com/ImpKind/amygdala-memory"
     requires:
@@ -43,9 +43,17 @@ Track five emotional dimensions that persist and decay over time:
 
 ## Quick Start
 
-### 1. Initialize emotional state
+### 1. Install
 
-The skill creates `~/.openclaw/workspace/memory/emotional-state.json` with baseline values.
+```bash
+cd ~/.openclaw/workspace/skills/amygdala-memory
+./install.sh --with-cron
+```
+
+This will:
+- Create `memory/emotional-state.json` with baseline values
+- Generate `AMYGDALA_STATE.md` (auto-injected into sessions!)
+- Set up cron for automatic decay every 6 hours
 
 ### 2. Check current state
 
@@ -84,10 +92,25 @@ The skill creates `~/.openclaw/workspace/memory/emotional-state.json` with basel
 
 | Script | Purpose |
 |--------|---------|
+| `install.sh` | Set up amygdala-memory (run once) |
 | `get-state.sh` | Read current emotional state |
 | `update-state.sh` | Log emotion or update dimension |
 | `load-emotion.sh` | Human-readable state for session context |
 | `decay-emotion.sh` | Return to baseline over time |
+| `sync-state.sh` | Generate AMYGDALA_STATE.md for auto-injection |
+
+## Auto-Injection (Zero Manual Steps!)
+
+After install, `AMYGDALA_STATE.md` is created in your workspace root.
+
+OpenClaw automatically injects all `*.md` files from workspace into session context. This means:
+
+1. **New session starts**
+2. **AMYGDALA_STATE.md is auto-loaded** (no manual step!)
+3. **You see your emotional state** in context
+4. **Responses are influenced** by your mood
+
+The file is regenerated whenever `decay-emotion.sh` runs (via cron every 6h).
 
 ## Supported Emotions
 

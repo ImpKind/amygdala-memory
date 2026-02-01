@@ -65,4 +65,8 @@ fi
 if [ "$DRY_RUN" = false ]; then
   CUTOFF=$(date -u -v-24H +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date -u -d "24 hours ago" +"%Y-%m-%dT%H:%M:%SZ")
   jq ".recentEmotions = [.recentEmotions[] | select(.timestamp > \"$CUTOFF\")]" "$STATE_FILE" > "$STATE_FILE.tmp" 2>/dev/null && mv "$STATE_FILE.tmp" "$STATE_FILE" || true
+  
+  # Sync to AMYGDALA_STATE.md for auto-injection
+  SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+  "$SCRIPT_DIR/sync-state.sh"
 fi

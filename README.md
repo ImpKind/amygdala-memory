@@ -117,6 +117,8 @@ SESSION START
 
 ```bash
 clawdhub install amygdala-memory
+cd ~/.openclaw/workspace/skills/amygdala-memory
+./install.sh --with-cron
 ```
 
 ### Manual
@@ -124,34 +126,13 @@ clawdhub install amygdala-memory
 ```bash
 git clone https://github.com/ImpKind/amygdala-memory.git
 cd amygdala-memory
-chmod +x scripts/*.sh
+./install.sh --with-cron
 ```
 
-Initialize state file:
-```bash
-mkdir -p ~/.openclaw/workspace/memory
-cat > ~/.openclaw/workspace/memory/emotional-state.json << 'EOF'
-{
-  "version": "1.0",
-  "lastUpdated": "",
-  "dimensions": {
-    "valence": 0.1,
-    "arousal": 0.3,
-    "connection": 0.4,
-    "curiosity": 0.5,
-    "energy": 0.5
-  },
-  "baseline": {
-    "valence": 0.1,
-    "arousal": 0.3,
-    "connection": 0.4,
-    "curiosity": 0.5,
-    "energy": 0.5
-  },
-  "recentEmotions": []
-}
-EOF
-```
+The install script will:
+- Create `emotional-state.json` with baseline values
+- Generate `AMYGDALA_STATE.md` (auto-injected into sessions!)
+- Set up cron for decay every 6 hours
 
 ### Optional: Emotional Decay Cron
 
