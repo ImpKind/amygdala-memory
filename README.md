@@ -98,15 +98,26 @@ Connection:   [███████████████████░]   0
 ```
 
 ### HTML Dashboard (Unified Brain)
+
+**Generated automatically on install and cron runs.**
+
+Access at: `~/.openclaw/workspace/brain-dashboard.html`
+
 ```bash
+# Generate manually
 ./scripts/generate-dashboard.sh
+
+# Open (macOS)
 open ~/.openclaw/workspace/brain-dashboard.html
+
+# Open (Linux)
+xdg-open ~/.openclaw/workspace/brain-dashboard.html
 ```
 
-**Auto-detects other brain skills** and shows tabs:
+**Shows tabs for all brain skills:**
 - 🎭 Emotions (Amygdala)
-- 🧠 Memory (Hippocampus — if installed)
-- ⭐ Drive (VTA — if installed)
+- 🧠 Memory (Hippocampus — or install prompt)
+- ⭐ Drive (VTA — or install prompt)
 
 Set avatar in `IDENTITY.md`:
 ```markdown
