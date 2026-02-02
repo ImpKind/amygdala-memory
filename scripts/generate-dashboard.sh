@@ -1,7 +1,6 @@
 #!/bin/bash
 # generate-dashboard.sh — Generate unified Brain Dashboard (Amygdala version)
-#
-# Each brain skill has its own generator. Shows all installed skills + install prompts for missing ones.
+# Professional design with glassmorphism and subtle animations
 
 set -e
 
@@ -22,7 +21,6 @@ HAS_VTA=false
 [ -f "$AMYGDALA_FILE" ] && HAS_AMYGDALA=true
 [ -f "$VTA_FILE" ] && HAS_VTA=true
 
-# Need at least amygdala (this is the amygdala generator)
 if [ "$HAS_AMYGDALA" != "true" ]; then
     echo "❌ No amygdala data found at $AMYGDALA_FILE"
     exit 1
@@ -106,70 +104,386 @@ cat > "$OUTPUT_FILE" << 'HTMLHEAD'
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Brain Dashboard</title>
     <style>
-        :root { --bg: #0f0f0f; --card: #1a1a1a; --border: #2e2e2e; --text: #fafafa; --muted: #71717a; --accent: #8b5cf6; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        :root {
+            --bg-dark: #09090b;
+            --bg-card: rgba(24, 24, 27, 0.8);
+            --bg-elevated: rgba(39, 39, 42, 0.6);
+            --border: rgba(63, 63, 70, 0.5);
+            --text: #fafafa;
+            --text-secondary: #a1a1aa;
+            --text-muted: #71717a;
+            --accent: #a855f7;
+            --accent-glow: rgba(168, 85, 247, 0.3);
+            --cyan: #06b6d4;
+            --pink: #ec4899;
+            --amber: #f59e0b;
+            --emerald: #10b981;
+        }
+        
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 32px 16px; }
-        .container { max-width: 560px; margin: 0 auto; }
-        .header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
-        .avatar { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent); }
-        .avatar-placeholder { width: 56px; height: 56px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 24px; }
-        .header h1 { font-size: 1.25rem; } .header .sub { color: var(--muted); font-size: 0.8rem; }
-        .tabs { display: flex; gap: 4px; background: var(--card); padding: 4px; border-radius: 10px; margin-bottom: 16px; }
-        .tab { flex: 1; padding: 8px; border: none; background: transparent; color: var(--muted); font-size: 0.8rem; cursor: pointer; border-radius: 6px; transition: 0.2s; }
-        .tab:hover { background: #242424; } .tab.active { background: #242424; color: var(--text); }
-        .tab-content { display: none; } .tab-content.active { display: block; }
-        .card { background: var(--card); border-radius: 10px; padding: 16px; margin-bottom: 12px; }
-        .card-title { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 10px; }
-        .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .stat { background: var(--bg); border-radius: 8px; padding: 12px; text-align: center; }
-        .stat-val { font-size: 1.5rem; font-weight: 600; } .stat-label { font-size: 0.65rem; color: var(--muted); }
-        .list-item { display: flex; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.8rem; }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-dark);
+            background-image: 
+                radial-gradient(ellipse at top, rgba(168, 85, 247, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at bottom right, rgba(6, 182, 212, 0.08) 0%, transparent 50%);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 24px 16px;
+            line-height: 1.5;
+        }
+        
+        .container { max-width: 480px; margin: 0 auto; }
+        
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+            padding: 16px;
+            background: var(--bg-card);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            backdrop-filter: blur(12px);
+        }
+        
+        .avatar-wrap {
+            position: relative;
+        }
+        
+        .avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--accent);
+            box-shadow: 0 0 24px var(--accent-glow);
+        }
+        
+        .avatar-placeholder {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--pink) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 0 24px var(--accent-glow);
+        }
+        
+        .status-dot {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 3px solid var(--bg-dark);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(0.95); }
+        }
+        
+        .header-info h1 { font-size: 1.25rem; font-weight: 600; }
+        .header-info .subtitle { color: var(--text-muted); font-size: 0.8rem; margin-top: 2px; }
+        .header-info .mood { 
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 6px;
+            padding: 4px 10px;
+            background: var(--bg-elevated);
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 12px 8px;
+            border: none;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: all 0.2s;
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        
+        .tab:hover { 
+            background: var(--bg-elevated);
+            border-color: rgba(168, 85, 247, 0.3);
+        }
+        
+        .tab.active { 
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.2) 0%, rgba(236, 72, 153, 0.1) 100%);
+            border-color: var(--accent);
+            color: var(--text);
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+        
+        .tab-icon { font-size: 1rem; }
+        
+        .tab-content { display: none; animation: fadeIn 0.3s ease; }
+        .tab-content.active { display: block; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+            backdrop-filter: blur(12px);
+        }
+        
+        .card-title {
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+        
+        /* Stats */
+        .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        
+        .stat {
+            background: var(--bg-elevated);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+        
+        .stat-val { 
+            font-size: 2rem; 
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--cyan) 0%, var(--emerald) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .stat-label { font-size: 0.7rem; color: var(--text-muted); margin-top: 4px; }
+        
+        /* Dimensions */
+        .dim {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .dim:last-child { border: none; }
+        .dim-icon { width: 28px; font-size: 1rem; }
+        .dim-name { flex: 1; font-size: 0.85rem; font-weight: 500; }
+        
+        .dim-bar {
+            width: 100px;
+            height: 6px;
+            background: var(--bg-elevated);
+            border-radius: 3px;
+            margin: 0 12px;
+            overflow: hidden;
+        }
+        
+        .dim-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+        
+        .dim-val { 
+            width: 40px; 
+            text-align: right; 
+            font-size: 0.8rem; 
+            color: var(--text-secondary);
+            font-variant-numeric: tabular-nums;
+        }
+        
+        /* Quadrant */
+        .quadrant { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        
+        .q-cell {
+            background: var(--bg-elevated);
+            border-radius: 12px;
+            padding: 14px 10px;
+            text-align: center;
+            border: 1px solid var(--border);
+            transition: all 0.3s;
+        }
+        
+        .q-cell .emoji { font-size: 1.5rem; margin-bottom: 4px; }
+        .q-cell .label { font-size: 0.75rem; font-weight: 500; }
+        
+        .q-cell.active {
+            border-color: var(--accent);
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(236, 72, 153, 0.1) 100%);
+            box-shadow: 0 0 20px var(--accent-glow);
+            transform: scale(1.02);
+        }
+        
+        /* List items */
+        .list-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        
         .list-item:last-child { border: none; }
-        .badge { background: var(--bg); padding: 2px 8px; border-radius: 6px; font-size: 0.7rem; white-space: nowrap; }
-        .list-text { flex: 1; color: #a1a1aa; }
-        .empty { color: var(--muted); text-align: center; padding: 16px; font-size: 0.85rem; }
-        .install-prompt { text-align: center; padding: 24px; }
-        .install-prompt .icon { font-size: 2rem; margin-bottom: 8px; opacity: 0.5; }
-        .install-prompt p { color: var(--muted); font-size: 0.85rem; margin-bottom: 12px; }
-        .install-prompt code { background: var(--bg); padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; }
-        .dim { display: flex; align-items: center; padding: 6px 0; }
-        .dim-icon { width: 24px; } .dim-name { flex: 1; font-size: 0.8rem; }
-        .dim-bar { width: 80px; height: 5px; background: var(--bg); border-radius: 3px; margin: 0 8px; overflow: hidden; }
-        .dim-fill { height: 100%; border-radius: 3px; }
-        .dim-val { width: 32px; text-align: right; font-size: 0.75rem; color: #a1a1aa; }
-        .quadrant { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-        .q-cell { background: var(--bg); border-radius: 6px; padding: 10px; text-align: center; border: 1px solid var(--border); }
-        .q-cell.active { border-color: var(--accent); background: rgba(139,92,246,0.1); }
-        .q-cell .emoji { font-size: 1rem; } .q-cell .label { font-size: 0.65rem; margin-top: 2px; }
-        .drive-meter { text-align: center; padding: 16px; }
-        .drive-val { font-size: 2rem; font-weight: 700; color: #f59e0b; }
-        .drive-bar { height: 6px; background: var(--bg); border-radius: 3px; margin-top: 8px; }
-        .drive-fill { height: 100%; background: linear-gradient(90deg, #f59e0b, #ef4444); border-radius: 3px; }
-        .tags { display: flex; flex-wrap: wrap; gap: 6px; }
-        .tag { background: var(--bg); padding: 4px 10px; border-radius: 10px; font-size: 0.7rem; color: #a1a1aa; }
-        .footer { text-align: center; margin-top: 20px; font-size: 0.65rem; color: var(--muted); }
-        .footer a { color: var(--accent); text-decoration: none; }
+        
+        .badge {
+            background: var(--bg-elevated);
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: capitalize;
+            white-space: nowrap;
+            border: 1px solid var(--border);
+        }
+        
+        .list-text { flex: 1; font-size: 0.8rem; color: var(--text-secondary); line-height: 1.5; }
+        
+        .empty { color: var(--text-muted); text-align: center; padding: 20px; font-size: 0.85rem; }
+        
+        /* Install prompt */
+        .install-prompt { text-align: center; padding: 32px 16px; }
+        .install-prompt .icon { 
+            font-size: 3rem; 
+            margin-bottom: 12px;
+            opacity: 0.4;
+        }
+        .install-prompt p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 8px; }
+        .install-prompt code { 
+            display: inline-block;
+            background: var(--bg-elevated); 
+            padding: 10px 16px; 
+            border-radius: 8px; 
+            font-size: 0.8rem;
+            border: 1px solid var(--border);
+            margin-top: 8px;
+        }
+        
+        /* Drive meter */
+        .drive-meter { text-align: center; padding: 24px 16px; }
+        
+        .drive-val { 
+            font-size: 3.5rem; 
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--amber) 0%, #ef4444 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .drive-label { font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; }
+        
+        .drive-bar {
+            height: 8px;
+            background: var(--bg-elevated);
+            border-radius: 4px;
+            margin-top: 16px;
+            overflow: hidden;
+        }
+        
+        .drive-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--amber) 0%, #ef4444 100%);
+            border-radius: 4px;
+            transition: width 0.5s;
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+        }
+        
+        /* Tags */
+        .tags { display: flex; flex-wrap: wrap; gap: 8px; }
+        
+        .tag {
+            background: var(--bg-elevated);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 24px;
+            padding-top: 16px;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+        
+        .footer a { 
+            color: var(--accent); 
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        
+        .footer a:hover { color: var(--pink); }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="header">
+        <div class="avatar-wrap">
 HTMLHEAD
 
 # Avatar
 if [ -n "$AVATAR_BASE64" ]; then
-    echo "        <img src=\"$AVATAR_BASE64\" class=\"avatar\">" >> "$OUTPUT_FILE"
+    echo "            <img src=\"$AVATAR_BASE64\" class=\"avatar\">" >> "$OUTPUT_FILE"
 else
-    echo "        <div class=\"avatar-placeholder\">🎭</div>" >> "$OUTPUT_FILE"
+    echo "            <div class=\"avatar-placeholder\">🎭</div>" >> "$OUTPUT_FILE"
 fi
 
 cat >> "$OUTPUT_FILE" << HEADER
-        <div><h1>$AGENT_NAME</h1><div class="sub">Brain Dashboard</div></div>
+            <div class="status-dot" style="background: $MOOD_COLOR;"></div>
+        </div>
+        <div class="header-info">
+            <h1>$AGENT_NAME</h1>
+            <div class="subtitle">Brain Dashboard</div>
+            <div class="mood">
+                <span>$MOOD_EMOJI</span>
+                <span style="color: $MOOD_COLOR;">$MOOD_LABEL</span>
+            </div>
+        </div>
     </div>
+    
     <div class="tabs">
-        <button class="tab" data-tab="hippocampus">🧠 Memory</button>
-        <button class="tab active" data-tab="amygdala">🎭 Emotions</button>
-        <button class="tab" data-tab="vta">⭐ Drive</button>
+        <button class="tab" data-tab="hippocampus"><span class="tab-icon">🧠</span> Memory</button>
+        <button class="tab active" data-tab="amygdala"><span class="tab-icon">🎭</span> Emotions</button>
+        <button class="tab" data-tab="vta"><span class="tab-icon">⭐</span> Drive</button>
     </div>
     
     <!-- Hippocampus Tab -->
@@ -180,8 +494,8 @@ if [ "$HAS_HIPPOCAMPUS" = "true" ]; then
     cat >> "$OUTPUT_FILE" << HIPPO
         <div class="card">
             <div class="stats">
-                <div class="stat"><div class="stat-val" style="color:#06b6d4">$MEMORY_COUNT</div><div class="stat-label">Total Memories</div></div>
-                <div class="stat"><div class="stat-val" style="color:#06b6d4">$CORE_COUNT</div><div class="stat-label">Core Memories</div></div>
+                <div class="stat"><div class="stat-val">$MEMORY_COUNT</div><div class="stat-label">Total Memories</div></div>
+                <div class="stat"><div class="stat-val">$CORE_COUNT</div><div class="stat-label">Core Memories</div></div>
             </div>
         </div>
         <div class="card">
@@ -194,23 +508,19 @@ else
         <div class="card">
             <div class="install-prompt">
                 <div class="icon">🧠</div>
-                <p>Hippocampus not installed</p>
-                <p>Add memory formation & recall to your agent</p>
+                <p><strong>Hippocampus</strong> not installed</p>
+                <p>Add memory formation & recall</p>
                 <code>clawdhub install hippocampus</code>
             </div>
         </div>
 INSTALL_HIPPO
 fi
 
-cat >> "$OUTPUT_FILE" << AMYGDALA_CONTENT
+cat >> "$OUTPUT_FILE" << 'AMYGDALA_START'
     </div>
     
-    <!-- Amygdala Tab (active) -->
+    <!-- Amygdala Tab -->
     <div class="tab-content active" id="tab-amygdala">
-        <div class="card" style="text-align:center;padding:20px">
-            <div style="font-size:3rem">$MOOD_EMOJI</div>
-            <div style="font-size:1rem;font-weight:600;color:$MOOD_COLOR">$MOOD_LABEL</div>
-        </div>
         <div class="card">
             <div class="card-title">Dimensions</div>
             <div id="dimensions"></div>
@@ -232,14 +542,14 @@ cat >> "$OUTPUT_FILE" << AMYGDALA_CONTENT
     
     <!-- VTA Tab -->
     <div class="tab-content" id="tab-vta">
-AMYGDALA_CONTENT
+AMYGDALA_START
 
 if [ "$HAS_VTA" = "true" ]; then
     cat >> "$OUTPUT_FILE" << VTA
         <div class="card">
             <div class="drive-meter">
                 <div class="drive-val">${DRIVE_PCT}%</div>
-                <div style="color:var(--muted);font-size:0.8rem">Drive Level</div>
+                <div class="drive-label">Drive Level</div>
                 <div class="drive-bar"><div class="drive-fill" style="width:${DRIVE_PCT}%"></div></div>
             </div>
         </div>
@@ -261,8 +571,8 @@ else
         <div class="card">
             <div class="install-prompt">
                 <div class="icon">⭐</div>
-                <p>VTA not installed</p>
-                <p>Add motivation & reward system to your agent</p>
+                <p><strong>VTA</strong> not installed</p>
+                <p>Add motivation & rewards</p>
                 <code>clawdhub install vta-memory</code>
             </div>
         </div>
@@ -272,7 +582,9 @@ fi
 cat >> "$OUTPUT_FILE" << 'FOOTER'
     </div>
     
-    <div class="footer"><a href="https://github.com/ImpKind">AI Brain Series</a> 🎭</div>
+    <div class="footer">
+        Part of the <a href="https://github.com/ImpKind">AI Brain Series</a> 🧠
+    </div>
 </div>
 <script>
 FOOTER
@@ -306,14 +618,15 @@ if (state.hippocampus.installed) {
     } else memEl.innerHTML = '<div class="empty">No memories yet</div>';
 }
 
-// Amygdala
+// Amygdala dimensions
 const dims = [
     {k:'valence',n:'Valence',i:'🎭',min:-1,max:1,c:'linear-gradient(90deg,#ef4444,#fbbf24,#10b981)'},
     {k:'arousal',n:'Arousal',i:'⚡',min:0,max:1,c:'linear-gradient(90deg,#3b82f6,#f97316)'},
     {k:'connection',n:'Connection',i:'💕',min:0,max:1,c:'#ec4899'},
     {k:'curiosity',n:'Curiosity',i:'🔍',min:0,max:1,c:'#06b6d4'},
     {k:'energy',n:'Energy',i:'🔋',min:0,max:1,c:'#eab308'},
-    {k:'trust',n:'Trust',i:'🤝',min:0,max:1,c:'#10b981'}
+    {k:'trust',n:'Trust',i:'🤝',min:0,max:1,c:'#10b981'},
+    {k:'anticipation',n:'Anticipation',i:'✨',min:0,max:1,c:'#a855f7'}
 ];
 const dimsEl = document.getElementById('dimensions');
 dims.forEach(d => {
@@ -322,10 +635,12 @@ dims.forEach(d => {
     dimsEl.innerHTML += `<div class="dim"><span class="dim-icon">${d.i}</span><span class="dim-name">${d.n}</span><div class="dim-bar"><div class="dim-fill" style="width:${pct}%;background:${d.c}"></div></div><span class="dim-val">${v.toFixed(2)}</span></div>`;
 });
 
+// Quadrant
 const v=state.amygdala.dimensions.valence, a=state.amygdala.dimensions.arousal;
 const q = (v>=0&&a>=0.5)?'energized':(v>=0)?'content':(a>=0.5)?'stressed':'depleted';
 document.getElementById('q-'+q)?.classList.add('active');
 
+// Recent emotions
 const emotionsEl = document.getElementById('recentEmotions');
 if (state.amygdala.recentEmotions?.length) {
     state.amygdala.recentEmotions.slice().reverse().forEach(e => {
@@ -338,10 +653,13 @@ if (state.vta.installed) {
     const seekEl = document.getElementById('vtaSeeking');
     const antEl = document.getElementById('vtaAnticipating');
     const rewEl = document.getElementById('recentRewards');
+    
     (state.vta.seeking||[]).forEach(s => seekEl.innerHTML += `<span class="tag">${s}</span>`);
-    if (!state.vta.seeking?.length) seekEl.innerHTML = '<div class="empty">Nothing sought</div>';
+    if (!state.vta.seeking?.length) seekEl.innerHTML = '<div class="empty">Nothing actively sought</div>';
+    
     (state.vta.anticipating||[]).forEach(a => antEl.innerHTML += `<span class="tag">${a}</span>`);
     if (!state.vta.anticipating?.length) antEl.innerHTML = '<div class="empty">Nothing anticipated</div>';
+    
     if (state.vta.recentRewards?.length) {
         state.vta.recentRewards.slice().reverse().forEach(r => {
             rewEl.innerHTML += `<div class="list-item"><span class="badge">${r.type}</span><span class="list-text">${r.source||'—'}</span></div>`;
