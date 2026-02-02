@@ -50,19 +50,31 @@ echo "✅ Scripts are executable"
 # 4. Generate initial AMYGDALA_STATE.md
 "$SKILL_DIR/scripts/sync-state.sh"
 
-# 5. Set up cron if requested
+# 5. Set up OpenClaw cron if requested
 if [ "$1" = "--with-cron" ]; then
   echo ""
-  echo "Setting up cron job for emotional decay..."
+  echo "Setting up OpenClaw cron jobs..."
   
-  # Check if cron job already exists
-  CRON_CMD="$SKILL_DIR/scripts/decay-emotion.sh"
-  if crontab -l 2>/dev/null | grep -q "decay-emotion.sh"; then
-    echo "✅ Cron job already exists"
+  if ! command -v openclaw &> /dev/null; then
+    echo "⚠️  'openclaw' not in PATH. Add these cron jobs manually:"
+    echo ""
+    echo "# Emotional decay (every 6 hours)"
+    echo "openclaw cron add --name amygdala-decay --cron '0 */6 * * *' --session isolated --agent-turn '🎭 Run emotional decay: Run $SKILL_DIR/scripts/decay-emotion.sh and sync state'"
+    echo ""
+    echo "# Emotional encoding (every 3 hours)"  
+    echo "openclaw cron add --name amygdala-encoding --cron '30 0,3,6,9,12,15,18,21 * * *' --session isolated --agent-turn 'Run amygdala emotional encoding. Preprocess signals, detect emotions, update state.'"
   else
-    # Add cron job (every 6 hours)
-    (crontab -l 2>/dev/null; echo "0 */6 * * * $CRON_CMD >/dev/null 2>&1") | crontab -
-    echo "✅ Added cron job: every 6 hours"
+    echo "   Creating amygdala-decay..."
+    openclaw cron add --name amygdala-decay \
+      --cron '0 */6 * * *' \
+      --session isolated \
+      --agent-turn "🎭 Run emotional decay: Run $SKILL_DIR/scripts/decay-emotion.sh and report results" 2>/dev/null && echo "   ✅ Created" || echo "   ⏭️  Already exists"
+    
+    echo "   Creating amygdala-encoding..."
+    openclaw cron add --name amygdala-encoding \
+      --cron '30 0,3,6,9,12,15,18,21 * * *' \
+      --session isolated \
+      --agent-turn "Run amygdala emotional encoding: 1) Run preprocess-emotions.sh 2) Read encode-emotions.md 3) Update state for significant emotions 4) Update watermark 5) Sync state" 2>/dev/null && echo "   ✅ Created" || echo "   ⏭️  Already exists"
   fi
 fi
 
@@ -82,17 +94,11 @@ echo ""
 echo "  # Log an emotion"
 echo "  $SKILL_DIR/scripts/update-state.sh --emotion joy --trigger \"reason\""
 echo ""
-echo "  # Manually sync state (happens automatically with decay)"
-echo "  $SKILL_DIR/scripts/sync-state.sh"
-echo ""
 
 if [ "$1" != "--with-cron" ]; then
-  echo "TIP: Run with --with-cron to set up automatic decay"
+  echo "TIP: Run with --with-cron to set up automatic decay & encoding"
   echo "  ./install.sh --with-cron"
   echo ""
 fi
 
-echo "Add to your AGENTS.md 'Every Session' checklist:"
-echo "  - Load emotional state: run scripts/load-emotion.sh"
-echo ""
 echo "Done! 🎭"

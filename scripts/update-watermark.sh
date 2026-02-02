@@ -24,16 +24,21 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [ "$FROM_SIGNALS" = true ]; then
-    # Get the last signal ID from the signals file
+    # Check if signals file exists and has content
     if [ ! -f "$SIGNALS_FILE" ]; then
-        echo "No signals file found at $SIGNALS_FILE"
-        exit 1
+        echo "ℹ️ No signals file found - nothing to update"
+        exit 0
     fi
     
-    LAST_ID=$(tail -1 "$SIGNALS_FILE" | python3 -c "import sys,json; print(json.load(sys.stdin).get('id',''))" 2>/dev/null)
+    if [ ! -s "$SIGNALS_FILE" ]; then
+        echo "ℹ️ Signals file is empty - nothing to update"
+        exit 0
+    fi
+    
+    LAST_ID=$(tail -1 "$SIGNALS_FILE" | python3 -c "import sys,json; print(json.load(sys.stdin).get('id',''))" 2>/dev/null || echo "")
     
     if [ -z "$LAST_ID" ]; then
-        echo "No signals found in file"
+        echo "ℹ️ No valid signal ID found - nothing to update"
         exit 0
     fi
     
@@ -47,11 +52,11 @@ fi
 
 # Update the state file
 if [ ! -f "$STATE_FILE" ]; then
-    echo "No state file found at $STATE_FILE"
+    echo "⚠️ No state file found at $STATE_FILE"
     exit 1
 fi
 
-OLD_WATERMARK=$(python3 -c "import json; print(json.load(open('$STATE_FILE')).get('lastProcessedSignal','(none)'))" 2>/dev/null)
+OLD_WATERMARK=$(python3 -c "import json; print(json.load(open('$STATE_FILE')).get('lastProcessedSignal','(none)'))" 2>/dev/null || echo "(none)")
 
 python3 -c "
 import json
