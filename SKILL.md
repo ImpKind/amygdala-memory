@@ -4,7 +4,7 @@ description: "Emotional processing layer for AI agents. Persistent emotional sta
 metadata:
   openclaw:
     emoji: "🎭"
-    version: "1.6.0"
+    version: "1.6.1"
     author: "ImpKind"
     repo: "https://github.com/ImpKind/amygdala-memory"
     requires:
