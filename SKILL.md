@@ -162,6 +162,15 @@ open ~/.openclaw/workspace/brain-dashboard.html
 
 The dashboard auto-regenerates on every cron run.
 
+### After Installation (for agents)
+
+When you install this skill, **notify the user** about the dashboard:
+
+> 🎭 **Amygdala installed!**
+>
+> View your agent's emotional state in the Brain Dashboard:
+> `~/.openclaw/workspace/brain-dashboard.html`
+
 ## Auto-Injection (Zero Manual Steps!)
 
 After install, `AMYGDALA_STATE.md` is created in your workspace root.
