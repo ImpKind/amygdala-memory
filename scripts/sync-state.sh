@@ -160,3 +160,9 @@ with open(output_file, 'w') as f:
 
 print(f'✅ Synced emotional state to {output_file}')
 "
+
+# Also regenerate the dashboard
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+if [ -f "$SCRIPT_DIR/generate-dashboard.sh" ]; then
+    "$SCRIPT_DIR/generate-dashboard.sh" 2>/dev/null || true
+fi

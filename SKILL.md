@@ -4,7 +4,7 @@ description: "Emotional processing layer for AI agents. Persistent emotional sta
 metadata:
   openclaw:
     emoji: "🎭"
-    version: "1.4.0"
+    version: "1.6.0"
     author: "ImpKind"
     repo: "https://github.com/ImpKind/amygdala-memory"
     requires:
@@ -98,6 +98,69 @@ This will:
 | `load-emotion.sh` | Human-readable state for session context |
 | `decay-emotion.sh` | Return to baseline over time |
 | `sync-state.sh` | Generate AMYGDALA_STATE.md for auto-injection |
+| `encode-pipeline.sh` | LLM-based emotional encoding from transcripts |
+| `preprocess-emotions.sh` | Extract emotional signals from session history |
+| `update-watermark.sh` | Track processed transcript position |
+| `generate-dashboard.sh` | Generate HTML dashboard (auto-runs on sync) |
+| `visualize.sh` | Terminal ASCII visualization |
+
+## Automatic Emotional Encoding (v1.5.0+)
+
+The amygdala can now automatically detect and log emotions from your conversation history using an LLM-based pipeline:
+
+```bash
+# Run the encoding pipeline
+./scripts/encode-pipeline.sh
+
+# This will:
+# 1. Extract new signals since last run (watermark-based)
+# 2. Score emotional content using rule-based patterns
+# 3. Spawn a sub-agent for semantic emotional detection
+# 4. Update emotional-state.json with detected emotions
+```
+
+### Set up automatic encoding (cron)
+
+```bash
+# Every 3 hours, process new conversations for emotional content
+0 */3 * * * ~/.openclaw/workspace/skills/amygdala-memory/scripts/encode-pipeline.sh
+```
+
+This means your emotional state updates automatically based on what happens in conversations — no manual logging needed.
+
+## Visualization (v1.6.0+)
+
+### Terminal
+```bash
+./scripts/visualize.sh
+
+🎭 Emotional State  😄
+═══════════════════════════════════════════════
+Valence:      [██████████████████░░]  +0.86
+Arousal:      [█████████████████░░░]   0.86
+Connection:   [███████████████████░]   0.97  💕
+...
+```
+
+### HTML Dashboard (Unified Brain Dashboard)
+```bash
+./scripts/generate-dashboard.sh
+open ~/.openclaw/workspace/brain-dashboard.html
+```
+
+**Auto-detects installed brain skills** and shows tabs:
+- **🎭 Emotions** — Amygdala (always shown)
+- **🧠 Memory** — Hippocampus (if `memory/index.json` exists)
+- **⭐ Drive** — VTA (if `memory/reward-state.json` exists)
+
+**Avatar & Name:** Reads from `IDENTITY.md`:
+```markdown
+# IDENTITY.md
+- **Name:** YourAgent
+- **Avatar:** avatar.png
+```
+
+The dashboard auto-regenerates on every cron run.
 
 ## Auto-Injection (Zero Manual Steps!)
 
@@ -193,10 +256,10 @@ After 24 hours without updates, a valence of 0.8 would decay to ~0.65.
 |------|----------|--------|
 | [hippocampus](https://www.clawhub.ai/skills/hippocampus) | Memory formation, decay, reinforcement | ✅ Live |
 | **amygdala-memory** | Emotional processing | ✅ Live |
+| [vta-memory](https://www.clawhub.ai/skills/vta-memory) | Reward and motivation | ✅ Live |
 | [basal-ganglia-memory](https://www.clawhub.ai/skills/basal-ganglia-memory) | Habit formation | 🚧 Development |
 | [anterior-cingulate-memory](https://www.clawhub.ai/skills/anterior-cingulate-memory) | Conflict detection | 🚧 Development |
 | [insula-memory](https://www.clawhub.ai/skills/insula-memory) | Internal state awareness | 🚧 Development |
-| [vta-memory](https://www.clawhub.ai/skills/vta-memory) | Reward and motivation | 🚧 Development |
 
 ## Philosophy
 

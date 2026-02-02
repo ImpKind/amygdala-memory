@@ -59,6 +59,60 @@ Track five emotional dimensions that persist and decay over time:
 | `update-state.sh` | Log emotion or update dimension directly |
 | `load-emotion.sh` | Human-readable state for session context |
 | `decay-emotion.sh` | Return to baseline over time (run via cron) |
+| `encode-pipeline.sh` | LLM-based emotional encoding from transcripts |
+| `preprocess-emotions.sh` | Extract emotional signals from session history |
+| `update-watermark.sh` | Track processed transcript position |
+| `generate-dashboard.sh` | Generate HTML dashboard |
+| `visualize.sh` | Terminal ASCII visualization |
+
+## Automatic Emotional Encoding (v1.5.0+)
+
+The amygdala can automatically detect emotions from your conversations:
+
+```bash
+./scripts/encode-pipeline.sh
+```
+
+This:
+1. Extracts new signals since last run (watermark-based)
+2. Scores emotional content using rule-based patterns
+3. Spawns a sub-agent for semantic emotional detection
+4. Updates your emotional state automatically
+
+Set up cron for automatic encoding every 3 hours:
+```bash
+0 */3 * * * ~/.openclaw/workspace/skills/amygdala-memory/scripts/encode-pipeline.sh
+```
+
+## Visualization (v1.6.0+)
+
+### Terminal
+```bash
+./scripts/visualize.sh
+
+🎭 Emotional State  😄
+═══════════════════════════════════════════════
+Valence:      [██████████████████░░]  +0.86
+Connection:   [███████████████████░]   0.97  💕
+...
+```
+
+### HTML Dashboard (Unified Brain)
+```bash
+./scripts/generate-dashboard.sh
+open ~/.openclaw/workspace/brain-dashboard.html
+```
+
+**Auto-detects other brain skills** and shows tabs:
+- 🎭 Emotions (Amygdala)
+- 🧠 Memory (Hippocampus — if installed)
+- ⭐ Drive (VTA — if installed)
+
+Set avatar in `IDENTITY.md`:
+```markdown
+- **Name:** YourAgent
+- **Avatar:** avatar.png
+```
 
 ## Supported Emotions
 
@@ -147,12 +201,12 @@ Building cognitive architecture for AI agents:
 
 | Part | Function | Status |
 |------|----------|--------|
-| [hippocampus](https://github.com/ImpKind/hippocampus-skill) | Memory formation, decay, reinforcement | ✅ Live |
+| [hippocampus](https://github.com/ImpKind/hippocampus) | Memory formation, decay, reinforcement | ✅ Live |
 | **amygdala-memory** | Emotional processing | ✅ Live |
+| [vta-memory](https://github.com/ImpKind/vta-memory) | Reward and motivation | ✅ Live |
 | basal-ganglia-memory | Habit formation | 🚧 Coming |
 | anterior-cingulate-memory | Conflict detection | 🚧 Coming |
 | insula-memory | Internal state awareness | 🚧 Coming |
-| vta-memory | Reward and motivation | 🚧 Coming |
 
 ## Philosophy
 
