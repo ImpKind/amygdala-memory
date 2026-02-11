@@ -52,6 +52,27 @@ full_mode = '$FULL_MODE' == 'true'
 signals = []
 found_watermark = False if watermark else True
 
+# Pre-check: detect session rotation
+# If watermark exists but isn't in the current session file, the session rotated
+if watermark:
+    with open(session_file, 'r', encoding='utf-8', errors='replace') as check_f:
+        watermark_exists_in_file = False
+        for check_line in check_f:
+            check_line = check_line.strip()
+            if not check_line:
+                continue
+            try:
+                check_data = json.loads(check_line)
+                if check_data.get('id', '') == watermark:
+                    watermark_exists_in_file = True
+                    break
+            except json.JSONDecodeError:
+                continue
+        if not watermark_exists_in_file:
+            print(f'WARNING: Session rotation detected - watermark {watermark[:16]}... not found in current session')
+            print(f'Processing all messages in new session')
+            found_watermark = True
+
 # Emotional keywords to help identify relevant signals
 emotion_keywords = [
     # Negative
